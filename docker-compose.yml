@@ -1,10 +1,22 @@
 services:
   app:
+    container_name: local-rag
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - .:/app
+      - .:/app                             # Live code
+      - poetry_deps:/opt/poetry_deps       # Installed dev tools
+      - poetry_cache:/root/.cache/pypoetry # Cached wheels/tars
     ports:
-      - "8000:8000"
-    command: poetry run start
+      - "80:80"
+      - "5678:5678"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - POETRY_VIRTUALENVS_CREATE=false
+      - POETRY_CACHE_DIR=/root/.cache/pypoetry
+      - PYTHONPATH=/opt/poetry_deps
+    entrypoint: docker-entrypoint.sh
+volumes:
+  poetry_deps:
+  poetry_cache:

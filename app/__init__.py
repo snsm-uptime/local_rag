@@ -49,8 +49,10 @@ class RAG:
         file_name = f.name
         console.rule(f"[bold blue]Processing file: {file_name}")
         content = read_local_file(os.path.join(DOCUMENTS_FOLDER, file_name))
-        if not content:
-            console.rule(f"[red]NO content for file: {file_name}[/red]")
+        if not content:  # Evaluate OCR results
+            console.rule(f"[orage]NO text content for file: {file_name}[/orage]")
+            console.print(f"[magenta]Running OCR...[/magenta]")
+            breakpoint()
             return
         chunks = split_text(content)
         console.rule(f"[green]Split text into {len(chunks)} chunks.[/green]")
