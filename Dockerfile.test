@@ -8,5 +8,4 @@ ENV PYTHONPATH="/opt/poetry_deps:/app:${PYTHONPATH}"
 
 EXPOSE 8000 5678
 
-# Set the default command to run tests
 CMD ["poetry", "run", "pytest", "tests"]

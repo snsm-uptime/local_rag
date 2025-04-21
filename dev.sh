@@ -11,7 +11,7 @@ echo "🛠️ Building all services..."
 docker-compose -f docker-compose.dev.yml build
 
 echo "🧪 Running tests..."
-docker-compose -f docker-compose.dev.yml run --rm test
+docker-compose -f docker-compose.dev.yml run --rm --service-ports test
 
 echo "✅ Tests passed! Launching backend and CLI..."
 docker-compose -f docker-compose.dev.yml up -d cli backend

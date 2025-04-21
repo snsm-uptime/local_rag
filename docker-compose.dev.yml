@@ -1,6 +1,7 @@
 volumes:
   poetry_deps:
 services:
+
   test:
     container_name: local-rag-test
     build:
@@ -12,7 +13,11 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - PYTEST_PDF=/app/tests/images_document.pdf
+    ports:
+      - "5680:5678"
+    command: ["poetry", "run", "python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "--wait-for-client", "-m", "pytest", "tests"]
     restart: "no"
+
   backend:
     container_name: rag-backend-dev
     build:
@@ -21,7 +26,7 @@ services:
     command: ["python", "-m", "app.dev", "entrypoints/run_backend.py"]
     ports:
       - "8000:8000"
-      - "5678:5678"
+      - "5679:5678"
     volumes:
       - .:/app
       - ./documents:/app/documents
@@ -29,6 +34,7 @@ services:
       - poetry_deps:/opt/poetry_deps
     environment:
       - PYTHONUNBUFFERED=1
+
   cli:
     build:
       context: .
@@ -41,6 +47,6 @@ services:
       - ./chroma:/app/chroma
       - poetry_deps:/opt/poetry_deps
     ports:
-      - "5679:5678"
+      - "5678:5678"
     depends_on:
       - backend
