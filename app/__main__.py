@@ -28,3 +28,7 @@ def run():
     while True:
         rag.update_files()
         wait_or_pull()
+
+
+if __name__ == "__main__":
+    run()
