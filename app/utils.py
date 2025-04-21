@@ -8,7 +8,7 @@ import pdfplumber
 from pdf2image import convert_from_path
 from rich.console import Console
 
-from app.constants import DOCUMENTS_FOLDER, OCR_LANG, PROMPTS_FOLDER
+from app.constants import DOCUMENTS_FOLDER, OCR_GPU, OCR_LANG, PROMPTS_FOLDER
 
 console = Console()
 
@@ -16,7 +16,7 @@ console = Console()
 def extract_pdf_to_txt(pdf_path: str) -> str:
     # Convert PDF to images
     images = convert_from_path(pdf_path, dpi=300, thread_count=10)
-    reader = easyocr.Reader([OCR_LANG], gpu=False)
+    reader = easyocr.Reader([OCR_LANG], gpu=OCR_GPU)
 
     # Use list as a string builder
     text_lines = []
@@ -48,6 +48,8 @@ def read_local_file(file_path: str) -> str:
     except UnicodeDecodeError:
         console.print(f"[red]Text decode error in file: {file_path}[/red]")
         return ""
+    except FileNotFoundError:
+        raise FileNotFoundError(f"File not found: {file_path}")
     except Exception as e:
         console.print(f"[red]Error reading file: {e}[/red]")
         return ""

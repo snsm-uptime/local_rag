@@ -5,3 +5,4 @@ DOCUMENTS_FOLDER = "./documents"
 PROMPTS_FOLDER = "./prompts"
 CHAT_NAME = "Study Buddy Chat"
 OCR_LANG = "en"
+OCR_GPU = True

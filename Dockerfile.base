@@ -4,19 +4,26 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=0 \
     PIP_CACHE_DIR=/root/.cache/pip \
     POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_CACHE_DIR=/root/.cache/pypoetry \
-    PYTHONPATH=/app
+    POETRY_CACHE_DIR=/root/.cache/pypoetry
 
 WORKDIR /app
 
+# System deps
 RUN apt-get update && apt-get install -y \
-    build-essential curl libgl1 libglib2.0-0 poppler-utils && apt-get clean
+    build-essential curl libgl1 libglib2.0-0 poppler-utils \
+    && apt-get clean
 
+# Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="/root/.local/bin:$PATH"
 
+# Copy lock files first to optimize layer caching
 COPY pyproject.toml poetry.lock ./
 
-# Install dependencies into shared location
+# Mount wheel cache, install deps fast
 RUN --mount=type=cache,target=/root/.cache/pip \
-    poetry install --no-root --with dev --directory /opt/poetry_deps
+    poetry install --no-root --with dev
+
+# Preload site-packages to shared path
+RUN mkdir -p /opt/poetry_deps && \
+    cp -r /usr/local/lib/python3.12/site-packages/* /opt/poetry_deps/
