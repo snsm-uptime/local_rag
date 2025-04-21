@@ -19,16 +19,12 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 # Add Poetry to PATH
 ENV PATH="/root/.local/bin:$PATH"
 
-# Install the poetry-plugin-export plugin
-RUN poetry self add poetry-plugin-export
-
 COPY pyproject.toml poetry.lock ./
 
-RUN --mount=type=cache,target=/root/.cache/pip poetry install --no-root --only main
+RUN --mount=type=cache,target=/root/.cache/pip poetry install --no-root --with dev
 
-RUN poetry add --group dev debugpy watchgod
 COPY . .
 
-EXPOSE 8000
+EXPOSE 8000 5678
 
-CMD ["python", "-m", "app"]
+CMD ["python", "-m", "app.dev"]

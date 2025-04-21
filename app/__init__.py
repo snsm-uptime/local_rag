@@ -52,7 +52,6 @@ class RAG:
         if not content:  # Evaluate OCR results
             console.rule(f"[orage]NO text content for file: {file_name}[/orage]")
             console.print(f"[magenta]Running OCR...[/magenta]")
-            breakpoint()
             return
         chunks = split_text(content)
         console.rule(f"[green]Split text into {len(chunks)} chunks.[/green]")
