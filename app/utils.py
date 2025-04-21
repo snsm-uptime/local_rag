@@ -2,12 +2,40 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 
+import easyocr
+import numpy as np
 import pdfplumber
+from pdf2image import convert_from_path
 from rich.console import Console
 
 from app.constants import DOCUMENTS_FOLDER, PROMPTS_FOLDER
 
 console = Console()
+
+
+def extract_pdf_to_txt(pdf_path: str, output_file: str):
+    # Convert PDF to images
+    images = convert_from_path(pdf_path, dpi=300)
+    reader = easyocr.Reader(["en"], gpu=False)
+
+    # Use list as a string builder
+    text_lines = []
+
+    for i, image in enumerate(images):
+        print(f"🔍 Processing page {i + 1}")
+        result = reader.readtext(np.array(image), detail=0)
+        page_text = "\n".join(result)
+        text_lines.append(f"\n\n--- Page {i + 1} ---\n{page_text}")
+
+    # Write to .txt file
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write("".join(text_lines))
+
+    print(f"✅ Text saved to {output_file}")
+
+
+# Example usage
+extract_pdf_to_txt("your_file.pdf", "output_text.txt")
 
 
 def read_local_file(file_path: str) -> str:
