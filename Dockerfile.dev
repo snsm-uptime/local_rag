@@ -1,42 +1,41 @@
 FROM python:3.12.10-slim
 
-# System dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    build-essential \
-    && apt-get clean
-
-# Install Poetry
-ENV POETRY_VERSION=1.8.2
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/root/.local/bin:$PATH"
-
-# Poetry and Python settings
-ENV POETRY_VIRTUALENVS_CREATE=false
-ENV PYTHONUNBUFFERED=1
-ENV POETRY_CACHE_DIR=/root/.cache/pypoetry
-ENV PYTHONPATH="/opt/poetry_deps:$PYTHONPATH"
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=0 \
+    PIP_CACHE_DIR=/root/.cache/pip
 
 # Set working directory
 WORKDIR /app
 
-# Copy only dependency files
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && apt-get clean
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Add Poetry to PATH
+ENV PATH="/root/.local/bin:$PATH"
+
+# Copy only pyproject.toml and poetry.lock to leverage Docker cache
 COPY pyproject.toml poetry.lock ./
 
-# Install main deps with poetry (to system)
-RUN poetry install --no-root --only main
+# Export dependencies to requirements.txt
+RUN poetry export --without-hashes --format=requirements.txt -o requirements.txt
 
-# Install dev-only tools directly into shared volume
-RUN pip install --target /opt/poetry_deps debugpy watchdog
+# Install Python dependencies with cache mount
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-# Copy app code
-COPY app/ ./app
+# Copy the rest of the application code
+COPY . .
 
-# Expose app + debug ports
-EXPOSE 80 5678
+# Expose application port
+EXPOSE 8000
 
-# Copy and set entrypoint
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-ENTRYPOINT ["docker-entrypoint.sh"]
+# Default command
+CMD ["python", "app.py"]
