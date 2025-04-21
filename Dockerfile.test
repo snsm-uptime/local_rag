@@ -33,4 +33,5 @@ COPY . .
 
 EXPOSE 8000 5678
 
-CMD ["python", "-m", "app.dev"]
+# Set the default command to run tests
+CMD ["poetry", "run", "pytest", "tests"]

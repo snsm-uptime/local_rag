@@ -10,27 +10,13 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    libgl1 \
-    libglib2.0-0 \
-    poppler-utils \
-    && apt-get clean
+    build-essential curl libgl1 libglib2.0-0 poppler-utils && apt-get clean
 
-# Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
-
-# Add Poetry to PATH
 ENV PATH="/root/.local/bin:$PATH"
 
 COPY pyproject.toml poetry.lock ./
 
+# Install dependencies into shared location
 RUN --mount=type=cache,target=/root/.cache/pip \
-    --mount=type=cache,target=/root/.cache/pypoetry \
-    poetry install --no-root --with dev
-
-COPY . .
-
-EXPOSE 8000 5678
-
-CMD ["python", "-m", "app.dev"]
+    poetry install --no-root --with dev --directory /opt/poetry_deps

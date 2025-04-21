@@ -1,4 +1,3 @@
-import sys
 from ollama import chat
 from app.utils import console, get_prompt
 from app.constants import CHAT_NAME
@@ -47,7 +46,7 @@ def chat_agent(query: str) -> str:
     return ollama_chat(system_message, query, context)
 
 
-def main():
+def run():
     console.rule(f"[bold magenta]{CHAT_NAME}[/]")
     console.print("[bold green]Type 'exit' to quit.[/]\n")
     while True:
@@ -59,4 +58,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run()

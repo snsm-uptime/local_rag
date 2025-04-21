@@ -22,7 +22,13 @@ from app.constants import (
     PERSISTENT_DIRECTORY,
     PROCESSED_FILES_PATH,
 )
-from app.utils import console, list_local_files, read_local_file, split_text
+from app.utils import (
+    console,
+    list_local_files,
+    read_local_file,
+    split_text,
+    extract_pdf_to_txt,
+)
 from app.singletons import ChromaDB
 
 
@@ -52,7 +58,12 @@ class RAG:
         if not content:  # Evaluate OCR results
             console.rule(f"[orage]NO text content for file: {file_name}[/orage]")
             console.print(f"[magenta]Running OCR...[/magenta]")
-            return
+            ocr_text = extract_pdf_to_txt(pdf_path=file_path)
+            if ocr_text != "":
+                console.print(
+                    f"[green]OCR text extracted successfully.[/green][orange]{len(ocr_text)} chars[/orange]"
+                )
+                content = ocr_text
         chunks = split_text(content)
         console.rule(f"[green]Split text into {len(chunks)} chunks.[/green]")
 

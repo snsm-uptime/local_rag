@@ -8,15 +8,15 @@ import pdfplumber
 from pdf2image import convert_from_path
 from rich.console import Console
 
-from app.constants import DOCUMENTS_FOLDER, PROMPTS_FOLDER
+from app.constants import DOCUMENTS_FOLDER, OCR_LANG, PROMPTS_FOLDER
 
 console = Console()
 
 
-def extract_pdf_to_txt(pdf_path: str, output_file: str):
+def extract_pdf_to_txt(pdf_path: str) -> str:
     # Convert PDF to images
-    images = convert_from_path(pdf_path, dpi=300)
-    reader = easyocr.Reader(["en"], gpu=False)
+    images = convert_from_path(pdf_path, dpi=300, thread_count=10)
+    reader = easyocr.Reader([OCR_LANG], gpu=False)
 
     # Use list as a string builder
     text_lines = []
@@ -27,15 +27,7 @@ def extract_pdf_to_txt(pdf_path: str, output_file: str):
         page_text = "\n".join(result)
         text_lines.append(f"\n\n--- Page {i + 1} ---\n{page_text}")
 
-    # Write to .txt file
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write("".join(text_lines))
-
-    print(f"✅ Text saved to {output_file}")
-
-
-# Example usage
-extract_pdf_to_txt("your_file.pdf", "output_text.txt")
+    return "".join(text_lines)
 
 
 def read_local_file(file_path: str) -> str:

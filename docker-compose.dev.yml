@@ -1,15 +1,43 @@
 services:
-  app:
-    container_name: local-rag
+  test:
+    container_name: local-rag-test
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+  backend:
+    container_name: rag-backend-dev
     build:
       context: .
       dockerfile: Dockerfile.dev
+    command: ["python", "-m", "app.dev", "entrypoints/run_backend.py"]
     ports:
       - "8000:8000"
       - "5678:5678"
     volumes:
       - .:/app
+      - ./documents:/app/documents
+      - ./chroma:/app/chroma
     environment:
       - PYTHONUNBUFFERED=1
-    stdin_open: true
-    tty: true
+      - PYTEST_PDF=/app/tests/images_document.pdf
+    depends_on:
+      - test
+  cli:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: rag-cli-dev
+    command: ["python", "-m", "app.dev", "entrypoints/run_cli.py"]
+    volumes:
+      - .:/app
+      - ./documents:/app/documents
+      - ./chroma:/app/chroma
+    ports:
+      - "5679:5678"
+    depends_on:
+      - test
+      - backend
