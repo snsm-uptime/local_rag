@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-BASE_IMAGE_NAME="local-rag-base"
-HASH_FILE=".base_image.hash"
+BASE_IMAGE_NAME="rag-dev-base"
+HASH_FILE=".base_image.dev.hash"
 HASH_INPUT="pyproject.toml poetry.lock"
 
 CURRENT_HASH=$(cat $HASH_INPUT | sha256sum | awk '{print $1}')

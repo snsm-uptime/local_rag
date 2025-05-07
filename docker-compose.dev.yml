@@ -3,13 +3,15 @@ volumes:
 
 services:
   backend:
-    container_name: rag-backend
+    container_name: rag-backend-dev
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
+      target: dev
     command: ["python", "-m", "app.dev", "entrypoints/run_backend.py"]
     ports:
       - "8000:8000"
+      - "5679:5678"
     volumes:
       - .:/app
       - ./documents:/app/documents
@@ -19,10 +21,11 @@ services:
       - PYTHONUNBUFFERED=1
 
   cli:
+    container_name: rag-cli-dev
     build:
       context: .
-      dockerfile: Dockerfile.dev
-    container_name: rag-cli
+      dockerfile: Dockerfile
+      target: dev
     command: ["python", "-m", "app.dev", "entrypoints/run_cli.py"]
     volumes:
       - .:/app
@@ -31,8 +34,6 @@ services:
       - poetry_deps:/opt/poetry_deps
     ports:
       - "5678:5678"
-    environment:
-      - PYTHONUNBUFFERED=1
     depends_on:
       - backend
 
@@ -40,12 +41,20 @@ services:
     container_name: rag-test
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
+      target: dev
+    command: ["poetry", "run", "pytest", "tests"]
     volumes:
       - .:/app
       - poetry_deps:/opt/poetry_deps
     environment:
       - PYTHONUNBUFFERED=1
       - PYTEST_PDF=/app/tests/images_document.pdf
-    command: ["poetry", "run", "pytest", "tests"]
     restart: "no"
+
+  debug-test:
+    extends:
+      service: test
+    ports:
+      - "5680:5678"
+    command: ["poetry", "run", "python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "--wait-for-client", "-m", "pytest", "tests"]

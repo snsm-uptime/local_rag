@@ -14,14 +14,14 @@ if [[ "${1:-}" == "--debug-tests" ]]; then
 fi
 
 echo "🔍 Checking base image and dependency cache..."
-bash rebuild_base_if_needed.sh
+bash ./scripts/rebuild_base_if_needed.dev.sh
 
 if [[ "$DEBUG_TESTS" == true ]]; then
   echo "🐞 Starting debug-test service..."
   docker-compose $COMPOSE_FILES run --rm --service-ports debug-test
 else
   echo "🧪 Running fast tests (no debug)..."
-  docker-compose $COMPOSE_FILES run --rm test-run
+  docker-compose $COMPOSE_FILES run --rm test
 
   echo "🚀 Starting backend and CLI containers..."
   docker-compose $COMPOSE_FILES up -d backend cli
