@@ -1,6 +1,36 @@
 volumes:
   poetry_deps:
+
 services:
+  debug-test:
+    container_name: local-rag-debug-test
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+      - poetry_deps:/opt/poetry_deps
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTEST_PDF=/app/tests/images_document.pdf
+    ports:
+      - "5680:5678"
+    command:
+      [
+        "poetry",
+        "run",
+        "python",
+        "-Xfrozen_modules=off",
+        "-m",
+        "debugpy",
+        "--listen",
+        "0.0.0.0:5678",
+        "--wait-for-client",
+        "-m",
+        "pytest",
+        "tests",
+      ]
+    restart: "no"
 
   test:
     container_name: local-rag-test
@@ -13,9 +43,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - PYTEST_PDF=/app/tests/images_document.pdf
-    ports:
-      - "5680:5678"
-    command: ["poetry", "run", "python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "--wait-for-client", "-m", "pytest", "tests"]
+    command: ["poetry", "run", "pytest", "tests"]
     restart: "no"
 
   backend:
