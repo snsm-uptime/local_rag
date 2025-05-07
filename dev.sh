@@ -1,26 +1,28 @@
 #!/bin/bash
-set -eo pipefail
+set -euo pipefail
 
-# Enable BuildKit
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
 
-# Validate local-rag-base exists
-if ! docker image inspect local-rag-base:latest >/dev/null 2>&1; then
-  echo "📦 Base image [local-rag-base:latest] not found. Building from Dockerfile.base..."
-  docker build -f Dockerfile.base -t local-rag-base:latest .
-else
-  echo "✅ Base image [local-rag-base:latest] found locally. Skipping base build."
+# Compose file references
+COMPOSE_FILES="-f docker-compose.dev.yml -f docker-compose.dev.override.yml"
+
+# Parse optional flag
+DEBUG_TESTS=false
+if [[ "${1:-}" == "--debug-tests" ]]; then
+  DEBUG_TESTS=true
 fi
 
-# Check if rebuild logic needs to run
-./scripts/check_base_rebuild.sh
+echo "🔍 Checking base image and dependency cache..."
+bash rebuild_base_if_needed.sh
 
-echo "🛠️ Building all services..."
-docker-compose -f docker-compose.dev.yml build
+if [[ "$DEBUG_TESTS" == true ]]; then
+  echo "🐞 Starting debug-test service..."
+  docker-compose $COMPOSE_FILES run --rm --service-ports debug-test
+else
+  echo "🧪 Running fast tests (no debug)..."
+  docker-compose $COMPOSE_FILES run --rm test-run
 
-echo "🧪 Running tests..."
-docker-compose -f docker-compose.dev.yml run --rm --service-ports test
-
-echo "✅ Tests passed! Launching backend and CLI..."
-docker-compose -f docker-compose.dev.yml up -d cli backend
+  echo "🚀 Starting backend and CLI containers..."
+  docker-compose $COMPOSE_FILES up -d backend cli
+fi

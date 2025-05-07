@@ -2,59 +2,14 @@ volumes:
   poetry_deps:
 
 services:
-  debug-test:
-    container_name: local-rag-debug-test
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-    volumes:
-      - .:/app
-      - poetry_deps:/opt/poetry_deps
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTEST_PDF=/app/tests/images_document.pdf
-    ports:
-      - "5680:5678"
-    command:
-      [
-        "poetry",
-        "run",
-        "python",
-        "-Xfrozen_modules=off",
-        "-m",
-        "debugpy",
-        "--listen",
-        "0.0.0.0:5678",
-        "--wait-for-client",
-        "-m",
-        "pytest",
-        "tests",
-      ]
-    restart: "no"
-
-  test:
-    container_name: local-rag-test
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-    volumes:
-      - .:/app
-      - poetry_deps:/opt/poetry_deps
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTEST_PDF=/app/tests/images_document.pdf
-    command: ["poetry", "run", "pytest", "tests"]
-    restart: "no"
-
   backend:
-    container_name: rag-backend-dev
+    container_name: rag-backend
     build:
       context: .
       dockerfile: Dockerfile.dev
     command: ["python", "-m", "app.dev", "entrypoints/run_backend.py"]
     ports:
       - "8000:8000"
-      - "5679:5678"
     volumes:
       - .:/app
       - ./documents:/app/documents
@@ -67,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: rag-cli-dev
+    container_name: rag-cli
     command: ["python", "-m", "app.dev", "entrypoints/run_cli.py"]
     volumes:
       - .:/app
@@ -76,5 +31,21 @@ services:
       - poetry_deps:/opt/poetry_deps
     ports:
       - "5678:5678"
+    environment:
+      - PYTHONUNBUFFERED=1
     depends_on:
       - backend
+
+  test:
+    container_name: rag-test
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - poetry_deps:/opt/poetry_deps
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTEST_PDF=/app/tests/images_document.pdf
+    command: ["poetry", "run", "pytest", "tests"]
+    restart: "no"
